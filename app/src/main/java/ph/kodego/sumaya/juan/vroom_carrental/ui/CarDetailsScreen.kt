@@ -142,27 +142,10 @@ fun CarDetails(carId: Int, navController: NavController) {
                     image = painterResource(id = R.drawable.peso),
                     text = "${car.ratePerDay}/ day"
                 )
-                val sharedPreferences2 = context.getSharedPreferences(
+
+                BookingSection(carId, navController)
+                val sharedPreferences = context.getSharedPreferences(
                     "booking_details", Context.MODE_PRIVATE)
-
-                val pickupDate = sharedPreferences2.getString("start_date", "")
-                val returnDate = sharedPreferences2.getString("end_date", "")
-                BookingSection(pickupDate!!, returnDate!!)
-
-                Button(
-                    onClick = {
-                        navController.navigate("bookings_screen/${car.carId}")
-                        saveBookingDetails(context, car, pickupDate, returnDate) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp),
-                    colors = ButtonDefaults
-                        .buttonColors(
-                            backgroundColor = DarkBlue,
-                            contentColor = White
-                        )) {
-                    Text(text = "Proceed to Booking")
-                }
             }
         }
     )
@@ -201,32 +184,17 @@ fun CarDetailsRow(image: Painter, text: String) {
 }
 
 @Composable
-fun BookingSection(pickupDate: String, returnDate: String) {
+fun BookingSection(carId: Int, navController: NavController) {
+    val car = getCarById(carId)
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences(
         "booking_details", Context.MODE_PRIVATE)
 
     var startDate by remember {
-        mutableStateOf(
-            sharedPreferences.getString("start_date",
-                LocalDate.now().dayOfMonth.toString())!!
-                .runCatching { LocalDate.parse(this) }
-                .getOrElse { LocalDate.now() }
-        )
+        mutableStateOf(LocalDate.now())
     }
-
     var endDate by remember {
-        mutableStateOf(
-            sharedPreferences.getString("end_date",
-                LocalDate.now().plusMonths(1).dayOfMonth.toString())!!
-                .runCatching { LocalDate.parse(this) }
-                .getOrElse { LocalDate.now().plusMonths(1) }
-        )
-    }
-
-    sharedPreferences.edit {
-        putString("start_date", pickupDate)
-        putString("end_date", returnDate)
+        mutableStateOf(LocalDate.now().plusMonths(1))
     }
 
     val formattedStartDate by remember {
@@ -333,7 +301,8 @@ fun BookingSection(pickupDate: String, returnDate: String) {
     MaterialDialog(
         dialogState = startDateDialogState,
         buttons = {
-            positiveButton(text = "Select")
+            positiveButton(
+                text = "Select")
             negativeButton(text = "Back")
         },
     ) {
@@ -349,7 +318,8 @@ fun BookingSection(pickupDate: String, returnDate: String) {
     MaterialDialog(
         dialogState = endDateDialogState,
         buttons = {
-            positiveButton(text = "Select")
+            positiveButton(
+                text = "Select")
             negativeButton(text = "Back")
         },
     ) {
@@ -364,20 +334,25 @@ fun BookingSection(pickupDate: String, returnDate: String) {
             endDate = it
         }
     }
-}
-
-fun saveBookingDetails(
-    context: Context,
-    car: Car,
-    startDate: String,
-    endDate: String
-) {
-    val sharedPreferences = context.getSharedPreferences("booking_details", Context.MODE_PRIVATE)
-    sharedPreferences.edit {
-        putString("car_name", "${car.manufacturer} ${car.carName}")
-        putInt("rate_per_day", car.ratePerDay.toInt())
-        putString("start_date", startDate)
-        putString("end_date", endDate)
+    Button(
+        onClick = {
+            sharedPreferences.edit {
+                putString("start_date_text", startDate.toString())
+                putInt("start_date", startDate.dayOfYear)
+                putString("end_date_text", endDate.toString())
+                putInt("end_date", endDate.dayOfYear)
+            }
+            navController.navigate("bookings_screen/${car?.carId}")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp),
+        colors = ButtonDefaults
+            .buttonColors(
+                backgroundColor = DarkBlue,
+                contentColor = White
+            )) {
+        Text(text = "Proceed to Booking")
     }
 }
 

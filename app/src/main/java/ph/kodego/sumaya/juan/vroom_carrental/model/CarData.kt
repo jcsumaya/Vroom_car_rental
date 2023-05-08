@@ -2,7 +2,8 @@ package ph.kodego.sumaya.juan.vroom_carrental.model
 
 import ph.kodego.sumaya.juan.vroom_carrental.R
 
-data class Car(val carId: Int,
+data class Car(
+               val carId: Int,
                val type:String,
                val manufacturer: String,
                val carName: String,
@@ -68,11 +69,7 @@ val allCars = listOf(
     Car(12,"Coaster", "Hyundai", "County","M/T",
         7500.0,
         listOf(locations[0], locations[4]),
-        R.drawable.coaster_01),
-    Car(0, "","","","",
-        0.0,
-        listOf(),
-        R.drawable.ic_launcher_foreground)
+        R.drawable.coaster_01)
 )
 
 val allCarsMap = allCars.associateBy { it.carId }

@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.navigation.NavController
 import ph.kodego.sumaya.juan.vroom_carrental.R
 import ph.kodego.sumaya.juan.vroom_carrental.model.getCarById
@@ -19,26 +18,28 @@ import ph.kodego.sumaya.juan.vroom_carrental.theme.DarkBlue
 import ph.kodego.sumaya.juan.vroom_carrental.theme.LightBlue
 import ph.kodego.sumaya.juan.vroom_carrental.theme.Typography
 import ph.kodego.sumaya.juan.vroom_carrental.theme.White
-import java.time.LocalDate
 
 @Composable
 fun BookingsScreen(navController: NavController) {
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences(
+    val bookingDetailsSharedPreferences = context.getSharedPreferences(
         "booking_details", Context.MODE_PRIVATE)
 
-    val pickupDate = sharedPreferences.getString("start_date", "")
-        ?.runCatching { LocalDate.parse(this) }
-        ?.getOrElse { LocalDate.now() }
-
-    val returnDate = sharedPreferences.getString("end_date", "")
-        ?.runCatching { LocalDate.parse(this) }
-        ?.getOrElse { LocalDate.now().plusMonths(1) }
+    val pickupDateText = bookingDetailsSharedPreferences
+        .getString("start_date_text", "")
+    val returnDateText = bookingDetailsSharedPreferences
+        .getString("end_date_text", "")
+    val pickupDay = bookingDetailsSharedPreferences
+        .getInt("start_date", 0)
+    val returnDay = bookingDetailsSharedPreferences
+        .getInt("end_date", 0)
 
     val carDetailsSharedPreferences = context.getSharedPreferences(
         "car_details", Context.MODE_PRIVATE)
-    var carId = carDetailsSharedPreferences.getInt("carId", 0)
+    val carId = carDetailsSharedPreferences.getInt("carId", 0)
     val car = getCarById(carId)
+
+
 
     Box(modifier = Modifier
         .background(White)
@@ -50,9 +51,9 @@ fun BookingsScreen(navController: NavController) {
             car!!.manufacturer,
             car.carName,
             car.ratePerDay,
-            pickupDate,
-            returnDate,
-            (returnDate!!.dayOfYear - pickupDate!!.dayOfYear)
+            pickupDateText!!,
+            returnDateText!!,
+            (returnDay + 1 - pickupDay)
                 .toDouble() * car.ratePerDay,
             navController)
 
@@ -68,8 +69,8 @@ fun WithCarReservation(
     manufacturer: String,
     carName: String,
     ratePerDay: Double,
-    pickupDate: LocalDate?,
-    returnDate: LocalDate?,
+    pickupDate: String,
+    returnDate: String,
     totalAmount: Double,
     navController: NavController
 ) {
@@ -103,12 +104,10 @@ fun WithCarReservation(
             style = Typography.body1
         )
         Spacer(modifier = Modifier.height(32.dp))
-        val context = LocalContext.current
         Button(
             onClick = {
-                context.getSharedPreferences("car_details", Context.MODE_PRIVATE)
-                .edit { putInt("carId", 0) }
-                navController.navigate("home_screen") },
+                navController.navigate("home_screen")
+                      },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = LightBlue,
